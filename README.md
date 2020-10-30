@@ -6,9 +6,8 @@
 * `up` to start the containers
 * `-d` to detach and run in the background
 
-### Getting the host for Kafka
-`docker network inspect config_default | grep Gateway`
-export KAFKA_HOST="kafka1:9091"
+### Host for Kafka
+`localhost:9091`
 
 ## Creating a new topic
 `docker exec -it config_kafka1_1 kafka-topics --zookeeper zookeeper:2181 --create --topic <insert-topic-name> --partitions 1 --replication-factor 1`
