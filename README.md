@@ -43,7 +43,7 @@ node app/consumer.js <insert-topic-name>
 node app/publish.js <insert-topic-name> "<insert-message>"
 ```
 
-## Workflow
+## Getting Started
 1. Start up zookeeper and kafka docker containers
 1. Create a new topic
 1. Start the consumer script `app/consumer.js` with newly created topic
