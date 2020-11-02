@@ -1,3 +1,5 @@
+# from: https://gist.github.com/devshawn/bf5d5afff02ea332d80fbe730e6d8e58
+# ref: https://devshawn.com/blog/apache-kafka-docker-quick-start/
 version: "3"
 
 services:
