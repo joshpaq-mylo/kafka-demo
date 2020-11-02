@@ -3,6 +3,11 @@
 ## Purpose
 Sample code to help get up and running with kafka and zookeeper.
 
+## Environment Variables
+| Key | Value |
+|---|---|
+| KAFKA_HOST | localhost:9091 |
+
 ## Helpful commands
 ### Starting Zookeeper and Kafka Docker Images
 ```
@@ -28,19 +33,19 @@ localhost:9091
 docker exec -it config_kafka1_1 kafka-topics \
     --zookeeper zookeeper:2181 \
     --create \
-    --topic <insert-topic-name> \
+    --topic <insert-topic-id> \
     --partitions 1 \
     --replication-factor 1
 ```
 
 ### Consume messages from a topic
 ```
-node app/consumer.js <insert-topic-name>
+node app/consumer.js <insert-topic-id>
 ```
 
 ### Publish message
 ```
-node app/publish.js <insert-topic-name> "<insert-message>"
+node app/publish.js <insert-topic-id> "<insert-message>"
 ```
 
 ## Getting Started
@@ -52,6 +57,15 @@ node app/publish.js <insert-topic-name> "<insert-message>"
 
 
 ## Helpful Links
-* [Docker Quick Start](https://devshawn.com/blog/apache-kafka-docker-quick-start/)
+* [Kafka Docker Quick Start](https://devshawn.com/blog/apache-kafka-docker-quick-start/)
 * [Kafka Topic Naming Conventions](https://devshawn.com/blog/apache-kafka-topic-naming-conventions/)
 * [How to paint a bike shed](https://riccomini.name/how-paint-bike-shed-kafka-topic-naming-conventions) (more naming conventions)
+
+
+## Other helpful kafka commands
+### list topics
+```
+docker exec -it config_kafka1_1 kafka-topics \
+    --zookeeper zookeeper:2181 \
+    --list
+```
