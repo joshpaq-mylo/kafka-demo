@@ -8,6 +8,3 @@ subscribe(topic, data => {
 })
 
 console.log('Ctrl + C to exit')
-// while (true) {
-//   setTimeout(() => {}, 100)
-// }
