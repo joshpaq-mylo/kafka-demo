@@ -8,7 +8,16 @@ Sample code to help get up and running with kafka and zookeeper.
 |---|---|
 | KAFKA_HOST | localhost:9091 |
 
-## Helpful commands
+## Getting Started
+##### Note: figure out how to do each of these steps below in Helpful Commands section.
+1. Start up zookeeper and kafka docker containers
+1. Create a new topic (not required)
+1. Start the consumer script `app/consumer.js` with newly created topic
+1. In another terminal, execute the publish script `app/publish.js` with topic and a message to send across
+1. Your message should be logged in the window where you started the consumer
+
+
+## Helpful Commands
 ### Starting Zookeeper and Kafka Docker Images
 ```
 docker-compose -f config/docker-zookeeper-kafka.yaml up -d
@@ -29,6 +38,7 @@ localhost:9091
 ```
 
 ### Creating a new topic
+By default kafka will automatically create a new topic for you, if it does not exist when you create a producer or consumer.
 ```sh
 docker exec -it config_kafka1_1 kafka-topics \
     --zookeeper zookeeper:2181 \
@@ -48,13 +58,6 @@ node app/consumer.js <insert-topic-id>
 node app/publish.js <insert-topic-id> "<insert-message>"
 ```
 
-## Getting Started
-1. Start up zookeeper and kafka docker containers
-1. Create a new topic
-1. Start the consumer script `app/consumer.js` with newly created topic
-1. In another terminal, execute the publish script `app/publish.js` with topic and a message to send across
-1. Your message should be logged in the window where you started the consumer
-
 
 ## Helpful Links
 * [Kafka Docker Quick Start](https://devshawn.com/blog/apache-kafka-docker-quick-start/)
@@ -62,7 +65,7 @@ node app/publish.js <insert-topic-id> "<insert-message>"
 * [How to paint a bike shed](https://riccomini.name/how-paint-bike-shed-kafka-topic-naming-conventions) (more naming conventions)
 
 
-## Other helpful kafka commands
+## Other Helpful Kafka Commands
 ### list topics
 ```
 docker exec -it config_kafka1_1 kafka-topics \
