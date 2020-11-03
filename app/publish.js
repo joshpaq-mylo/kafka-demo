@@ -6,4 +6,4 @@ const message = process.argv[3]
 console.log(`Publishing '${message}'`)
 console.log(`On topic: ${topic}`)
 
-publish(topic, message)
+publish(topic, JSON.stringify({ message }))
