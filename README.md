@@ -52,7 +52,7 @@ node app/publish.js <insert-topic-id> "<insert-message>"
 1. Start up zookeeper and kafka docker containers
 1. Create a new topic
 1. Start the consumer script `app/consumer.js` with newly created topic
-1. In another terminal, execute the publish script with topic and a message to send across
+1. In another terminal, execute the publish script `app/publish.js` with topic and a message to send across
 1. Your message should be logged in the window where you started the consumer
 
 
