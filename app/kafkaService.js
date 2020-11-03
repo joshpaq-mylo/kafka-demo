@@ -1,83 +1,108 @@
-const { KafkaClient, Producer, Consumer } = require('kafka-node')
+const Kafka = require('node-rdkafka')
 
 const options = require('./common/options')
+const clientId = require('../package.json').name
 
-const createClient = host => new KafkaClient({ kafkaHost: host })
-
-const publish = (topic, message) => {
-  const producer = new Producer(createClient(options.kafka.host))
-
-  producer.on('ready', () => {
-    console.log('producer ready')
-    // lookup what refresh metadata does
-    /*
-    client.refreshMetadata([topic], (error) => {
-      if (error) {
-        throw error
-      }
-      console.log(`Sending message to ${topic}: ${JSON.stringify(message)}`)
-      producer.send([{ topic, messages: [message] }], (err, result) => {
-        console.log(err || result)
-      })
-    }) */
-
-    producer.send([{ topic, messages: [JSON.stringify(message)] }], (err, result) => {
-      // throw on error so we can respond to it, since we usually use a transactional outbox this would
-      // mean we would NOT delete the message from the outbox since we want to guarantee it gets sent
-      err ? console.error('Error when sending message from producer.', err)
-        : console.log('result', result)
-    })
-  })
-  producer.on('error', (error) => {
-    console.error('Producer has thrown an error:', error)
-  })
+const producerConfig = {
+  'client.id': clientId,
+  'metadata.broker.list': options.kafka.host
 }
 
-const subscribe = (topic, action) => {
-  const consumer = new Consumer(createClient(options.kafka.host),
-    // topics
-    [
-      {
-        topic: topic,
-        partition: 0
-      }
-    ],
-    // options
-    {
-      autoCommit: false,
-      fetchMaxWaitMs: 1000,
-      fetchMaxBytes: 1024 * 1024
+const consumerConfig = {
+  'group.id': clientId,
+  'metadata.broker.list': options.kafka.host,
+  'enable.auto.commit': false
+}
+
+function init (/* clientId, host */) {
+  const producer = new Promise((resolve, reject) => {
+    const producer = new Kafka.Producer(producerConfig)
+
+    producer.connect()
+
+    producer.on('ready', () => {
+      console.info('Kafka producer ready')
+      resolve(producer)
     })
 
-  consumer.on('message', async (message) => {
-    const {
-      topic,
-      offset
-    } = message
-    try {
-      await action(message)
-      // we commit the offset on successfully responding to the event
-      // this makes sure we respond to the message AT LEAST ONCE
-      consumer.commit((error, data) => {
-        if (error) {
-          console.error(`Error committing Kafka offset [${offset}] for topic [${topic}]`, error)
-        } else {
-          console.log(`Successfully committed Kafka offset [${offset}] for topic [${topic}]`, data)
-        }
-      })
-    } catch (error) {
-      // don't commit on error
-      console.error(`Consumer error performing action on Kafka offset [${offset}] for topic [${topic}]`)
-      console.error(error)
-    }
+    producer.on('error', (error) => {
+      console.error('Kafka producer error', error)
+      reject(error)
+    })
+
+    producer.on('event.error', (error) => {
+      console.error('Kafka producer error', error)
+      reject(error)
+    })
   })
 
-  consumer.on('error', (error) => {
-    console.error('Consumer has thrown an error', error)
+  const consumer = new Promise((resolve) => {
+    const consumer = new Kafka.KafkaConsumer(consumerConfig)
+
+    consumer.connect()
+
+    consumer.on('ready', () => {
+      console.info('Kafka consumer ready')
+      resolve(consumer)
+    })
   })
+
+  return {
+    publish: async (topic, message, headers) => {
+      return producer.then((producer) => producer.produce(topic, null, Buffer.from(message), null, null, null, headers))
+    },
+    // every time we sub maybe we should add the subs to a list and restart the sub?
+    subscribe: async (subscriptions) => {
+      return consumer.then((consumer) => {
+        const flatSubscriptions = subscriptions.reduce((topics, { topic, fn }) => {
+          topics[topic] = fn
+          return topics
+        }, {})
+        const topics = Object.keys(flatSubscriptions)
+
+        consumer.subscribe(topics)
+
+        console.debug(`Kafka subscriptions registered for the following topics [${topics.join(', ')}.]`)
+
+        consumer.consume()
+
+        consumer.on('data', async (message) => {
+          try {
+            console.debug(`Kafka message received on topic [${message.topic}]`)
+
+            // headers and value are a buffer so we convert them here and flatten headers
+            const value = JSON.parse(message.value.toString())
+            const headers = (message.headers || []).reduce((convertedHeaders, header) => {
+              Object.keys(header).forEach(key => {
+                convertedHeaders[key] = header[key].toString()
+              })
+              return convertedHeaders
+            }, {})
+
+            const subscriptionFn = flatSubscriptions[message.topic]
+
+            if (!subscriptionFn) {
+              console.error(`No subscription found for incoming kafka message with topic ${message.topic}`)
+              return
+            }
+
+            await subscriptionFn({
+              ...message,
+              value,
+              headers
+            })
+          } catch (e) {
+            console.warn(`There was an error processing message for topic ${message.topic}`, e)
+          } finally {
+            // always commit after everything is done even after an error this way we don't just run an erroring message over and over again
+            consumer.commit()
+          }
+        })
+      })
+    }
+  }
 }
 
 module.exports = {
-  publish,
-  subscribe
+  ...init()
 }
