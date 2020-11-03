@@ -13,7 +13,7 @@
   },
   "author": "",
   "dependencies": {
-    "kafka-node": "^5.0.0"
+    "node-rdkafka": "^2.9.1"
   },
   "devDependencies": {
     "standard": "^14.3.3"
