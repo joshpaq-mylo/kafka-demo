@@ -38,7 +38,7 @@ localhost:9091
 ```
 
 ### Creating a new topic
-By default kafka will automatically create a new topic for you, if it does not exist when you create a producer or consumer.
+By default kafka will automatically create a new topic for you, if it does not exist when you create a producer or consumer. In the future, sandbox/prod may have auto create turned off.
 ```sh
 docker exec -it config_kafka1_1 kafka-topics \
     --zookeeper zookeeper:2181 \
