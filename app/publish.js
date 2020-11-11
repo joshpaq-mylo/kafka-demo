@@ -6,4 +6,10 @@ const message = process.argv[3]
 console.log(`Publishing '${message}'`)
 console.log(`On topic: ${topic}`)
 
-publish(topic, JSON.stringify({ message }))
+const headers = [
+  { 'X-Mylo-Entity-Type': 'Message' },
+  { 'X-Mylo-Tenant-Id': 'mylo' },
+  { 'X-Mylo-Source': require('../package.json').name }
+]
+
+publish(topic, JSON.stringify({ message }), headers)

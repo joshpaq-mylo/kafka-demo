@@ -4,7 +4,9 @@ const topic = process.argv[2]
 console.log(`Starting consumer on topic: ${topic}`)
 
 const handler = data => {
-  console.log(`${topic} data:\t`, JSON.stringify(data))
+  console.log(`Message on: ${data.topic}`)
+  console.log('Headers:', JSON.stringify(data.headers, null, 2))
+  console.log('Data:', JSON.stringify(data.value, null, 2))
 }
 subscribe([{ topic, fn: handler }])
 
