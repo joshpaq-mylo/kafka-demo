@@ -1,15 +1,23 @@
-const { publish } = require('./kafkaService')
+const options = require('./common/options')
+const { Producer } = require('@mylo/kafka-utils')
 
-const topic = process.argv[2]
+const main = async () => {
+  const producer = new Producer(require('../package.json').name, options.kafka.host)
+  await producer.init()
 
-const message = process.argv[3]
-console.log(`Publishing '${message}'`)
-console.log(`On topic: ${topic}`)
+  const topic = process.argv[2]
 
-const headers = [
-  { 'X-Mylo-Entity-Type': 'Message' },
-  { 'X-Mylo-Tenant-Id': 'mylo' },
-  { 'X-Mylo-Source': require('../package.json').name }
-]
+  const message = process.argv[3]
+  console.log(`Publishing '${message}'`)
+  console.log(`On topic: ${topic}`)
 
-publish(topic, JSON.stringify({ message }), headers)
+  const headers = {
+    'X-Mylo-Entity-Type': 'Message',
+    'X-Mylo-Tenant-Id': 'mylo',
+    'X-Mylo-Source': require('../package.json').name
+  }
+
+  await producer.publish(topic, { message }, headers)
+}
+
+main()
